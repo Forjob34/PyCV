@@ -4,3 +4,4 @@ output
 src
 m_test.py
 result.json
+.gitattributes
