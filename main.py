@@ -7,7 +7,6 @@ import numpy as np
 import asyncio
 from imutils import contours
 from scipy.spatial import distance as dist
-from multiprocessing import Process
 
 
 size_arr = []
@@ -69,7 +68,7 @@ def draw_cont(frame_contours, frame, pixelsPerMetric):
         box = np.int0(box)
         area = int(rect[1][0]*rect[1][1])
 
-        if area > 200000:
+        if area > 50000:
 
             # print(area)
             cv.drawContours(frame, [box], 0, (0, 0, 0), 3, 2)
@@ -118,8 +117,8 @@ def draw_cont(frame_contours, frame, pixelsPerMetric):
                 pixelsPerMetric = dA
 
             # compute the size of the object
-            dimA = dA / 13.0
-            dimB = dB / 13.0
+            dimA = dA
+            dimB = dB
 
             # draw the object sizes on the image
             cv.putText(frame, "{:.1f}cm".format(dimA),
@@ -164,7 +163,7 @@ def write_json(data=radiators):
 
 
 async def show_video(cap):
-    hsv_min = np.array((0, 0, 150), np.uint8)
+    hsv_min = np.array((0, 0, 195), np.uint8)
     hsv_max = np.array((255, 255, 255), np.uint8)
     # Create background
     # backSub = cv.createBackgroundSubtractorMOG2()
@@ -183,17 +182,17 @@ async def show_video(cap):
 
         # ++++++++++++ Find conours with HSV_filter ++++++++++++++
 
-        # frame_hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
-        # thresh = cv.inRange(frame_hsv, hsv_min, hsv_max)
+        frame_hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+        thresh = cv.inRange(frame_hsv, hsv_min, hsv_max)
 
         # ++++++++++++ Find conours with Canny ++++++++++++++
 
-        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-        gray = cv.GaussianBlur(gray, (11, 11), 0)
-        edges = cv.Canny(gray, 10, 200)
+        # gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        # gray = cv.GaussianBlur(gray, (15, 15), 0)
+        # edges = cv.Canny(gray, 10, 100)
 
         frame_contours, hierarchy = cv.findContours(
-            edges, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+            thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
         try:
             (frame_contours, _) = contours.sort_contours(frame_contours)
@@ -205,7 +204,7 @@ async def show_video(cap):
         write_data = write_json(data)
 
         cv.imshow('Video Capture', frame)
-        # cv.imshow('Test', edges)
+        cv.imshow('Test', thresh)
 
         key = cv.waitKey(30)
         if key == ord('q') or key == 27:
@@ -222,4 +221,4 @@ if __name__ == '__main__':
     # Process(target=show_video(cap_video('./src/vid_6.mp4'))).start()
     # Process(target=get_csv()).start()
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(show_video(cap_video('./src/vid_6.mp4')))
+    loop.run_until_complete(show_video(cap_video('./src/vid_11.mp4')))

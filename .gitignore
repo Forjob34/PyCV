@@ -1,7 +1,0 @@
-env
-__pycache__
-output
-src
-m_test.py
-result.json
-.gitattributes

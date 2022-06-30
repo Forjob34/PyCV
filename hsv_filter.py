@@ -10,7 +10,7 @@ max_value = 255
 max_value_H = 360//2
 low_H = 0
 low_S = 0
-low_V = 100
+low_V = 195
 high_H = max_value_H
 high_S = max_value
 high_V = max_value
@@ -86,24 +86,24 @@ parser.add_argument(
 
 args = parser.parse_args()
 # cap = cv.VideoCapture(args.camera)
-cap = cv.VideoCapture('./src/vid_6.mp4')
+cap = cv.VideoCapture('./src/vid_16.mp4')
 frame_count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
 print('Frame count:', frame_count)
 cv.namedWindow(window_capture_name)
-# cv.namedWindow(window_detection_name)
+cv.namedWindow(window_detection_name)
 
-# cv.createTrackbar(low_H_name, window_detection_name, low_H,
-#                   max_value_H, on_low_H_thresh_trackbar)
-# cv.createTrackbar(high_H_name, window_detection_name, high_H,
-#                   max_value_H, on_high_H_thresh_trackbar)
-# cv.createTrackbar(low_S_name, window_detection_name, low_S,
-#                   max_value, on_low_S_thresh_trackbar)
-# cv.createTrackbar(high_S_name, window_detection_name, high_S,
-#                   max_value, on_high_S_thresh_trackbar)
-# cv.createTrackbar(low_V_name, window_detection_name, low_V,
-#                   max_value, on_low_V_thresh_trackbar)
-# cv.createTrackbar(high_V_name, window_detection_name, high_V,
-#                   max_value, on_high_V_thresh_trackbar)
+cv.createTrackbar(low_H_name, window_detection_name, low_H,
+                  max_value_H, on_low_H_thresh_trackbar)
+cv.createTrackbar(high_H_name, window_detection_name, high_H,
+                  max_value_H, on_high_H_thresh_trackbar)
+cv.createTrackbar(low_S_name, window_detection_name, low_S,
+                  max_value, on_low_S_thresh_trackbar)
+cv.createTrackbar(high_S_name, window_detection_name, high_S,
+                  max_value, on_high_S_thresh_trackbar)
+cv.createTrackbar(low_V_name, window_detection_name, low_V,
+                  max_value, on_low_V_thresh_trackbar)
+cv.createTrackbar(high_V_name, window_detection_name, high_V,
+                  max_value, on_high_V_thresh_trackbar)
 
 frame_width, frame_height = (
     int(cap.get(cv.CAP_PROP_FRAME_WIDTH)),
@@ -126,7 +126,7 @@ while True:
 
     frame_HSV = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
     frame_threshold = cv.inRange(
-        frame_HSV, (0, 0, 120), (255, 255, 255))
+        frame_HSV, (low_H, low_S, low_V), (high_H, high_S, high_V))
 
     frame_contours, hierarchy = cv.findContours(
         frame_threshold.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
@@ -203,23 +203,20 @@ while True:
             dimB = dB
 
             # draw the object sizes on the image
-            cv.putText(frame, "{:.1f}cm".format(dimA / 13.0),
+            cv.putText(frame, "{:.1f}cm".format(dimA / 3.0),
                        (int(tltrX), int(tltrY + 50)), cv.FONT_HERSHEY_SIMPLEX,
                        0.65, (0, 0, 0), 2)
             # print(dimA)
-            cv.putText(frame, "{:.1f}cm".format(dimB / 13.0),
+            cv.putText(frame, "{:.1f}cm".format(dimB / 3.0),
                        (int(trbrX - 50), int(trbrY)), cv.FONT_HERSHEY_SIMPLEX,
                        0.65, (0, 0, 0), 2)
 
             height = dimA / 13.0
             lenght = dimB / 13.0
 
-            if (height >= 49.0 and lenght >= 49.0) and (height < 53.0 and lenght < 52.0):
-                print(
-                    f'width {"{0:.1f}".format(dA / 11.0)} x lenght {"{0:.1f}".format(dB / 11.0)} ')
     cv.imshow(window_capture_name, frame)
     # out.write(frame)
-    # cv.imshow(window_detection_name, frame_threshold)
+    cv.imshow(window_detection_name, frame_threshold)
 
     key = cv.waitKey(30)
     if key == ord('q') or key == 27:
