@@ -10,7 +10,6 @@ from scipy.spatial import distance as dist
 
 
 size_arr = []
-
 radiators = {
     'radiator_type':
     {
@@ -44,7 +43,7 @@ def cap_video(path):
             int(cap.get(cv.CAP_PROP_FRAME_HEIGHT)),
             int(cap.get(cv.CAP_PROP_FPS))
         )
-        print(frame_height, frame_width)
+        print(frame_height, frame_width, fps)
 
         frame_count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
         print('Frame count:', frame_count)
@@ -67,10 +66,9 @@ def draw_cont(frame_contours, frame, pixelsPerMetric):
             rect) if imutils.is_cv2() else cv.boxPoints(rect)
         box = np.int0(box)
         area = int(rect[1][0]*rect[1][1])
-
+        # print(box)
         if area > 50000:
 
-            # print(area)
             cv.drawContours(frame, [box], 0, (0, 0, 0), 3, 2)
 
             # loop over the original points and draw them
@@ -117,8 +115,8 @@ def draw_cont(frame_contours, frame, pixelsPerMetric):
                 pixelsPerMetric = dA
 
             # compute the size of the object
-            dimA = dA
-            dimB = dB
+            dimA = dA / 13.0
+            dimB = dB / 13.0
 
             # draw the object sizes on the image
             cv.putText(frame, "{:.1f}cm".format(dimA),
@@ -132,19 +130,38 @@ def draw_cont(frame_contours, frame, pixelsPerMetric):
                        0.65, (0, 0, 0), 2)
 
             try:
-                height = float('{:.0f}'.format(dimA))
+                height = 10 * round(int(dimA) / 10)
             except:
                 height = None
                 area = None
             try:
-                lenght = float('{:.0f}'.format(dimB))
+                # lenght = float('{:.0f}'.format(dimB))
+                length = 10 * round(int(dimB) / 10)
             except:
-                lenght = None
+                length = None
 
-            radiators['radiator_type']['sizes'] = {'height': height,
-                                                   'lenght': lenght,
-                                                   'area': area}
-            radiators['radiator_type']['type'] = f"Тип 22х{int(height * 10)}x{int(lenght * 10)}"
+            if length > 10 and height > 20:
+                if length and height in size_arr:
+                    continue
+                else:
+                    size_arr.clear()
+                    size_arr.append(length)
+                    size_arr.append(height)
+                    print(size_arr)
+                    print(area)
+
+                    radiators['radiator_type']['sizes'] = {'height': height,
+                                                           'lenght': length,
+                                                           'area': area}
+                    radiators['radiator_type']['type'] = f"Тип 22х{int(height * 10)}x{int(length * 10)}"
+
+        # if area < 80000:
+        #     try:
+        #         size_arr.clear()
+        #     except:
+        #         print('this is empty')
+
+            # time.sleep(2)
 
     return radiators
 
@@ -163,8 +180,12 @@ def write_json(data=radiators):
 
 
 async def show_video(cap):
-    hsv_min = np.array((0, 0, 195), np.uint8)
-    hsv_max = np.array((255, 255, 255), np.uint8)
+    # """Write video in file"""
+    # fourcc = cv.VideoWriter_fourcc(*'XVID')
+    # out = cv.VideoWriter('output.avi', fourcc, 13, (1920, 1080))
+
+    hsv_min = np.array((0, 0, 144), np.uint8)
+    hsv_max = np.array((180, 255, 255), np.uint8)
     # Create background
     # backSub = cv.createBackgroundSubtractorMOG2()
 
@@ -182,17 +203,21 @@ async def show_video(cap):
 
         # ++++++++++++ Find conours with HSV_filter ++++++++++++++
 
-        frame_hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
-        thresh = cv.inRange(frame_hsv, hsv_min, hsv_max)
+        # frame_hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+        # thresh = cv.inRange(frame_hsv, hsv_min, hsv_max)
 
         # ++++++++++++ Find conours with Canny ++++++++++++++
 
-        # gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-        # gray = cv.GaussianBlur(gray, (15, 15), 0)
-        # edges = cv.Canny(gray, 10, 100)
+        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        gray = cv.GaussianBlur(gray, (11, 11), 0)
+        edges = cv.Canny(gray, 10, 150)
 
         frame_contours, hierarchy = cv.findContours(
-            thresh, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+            edges, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+
+        # print(frame_contours)
+        # lines = cv.polylines(frame, frame_contours, isClosed=False,
+        #                      color=(0, 0, 255), thickness=2)
 
         try:
             (frame_contours, _) = contours.sort_contours(frame_contours)
@@ -201,10 +226,12 @@ async def show_video(cap):
             e
 
         data = draw_cont(frame_contours, frame, pixelsPerMetric)
+        # print(data)
         write_data = write_json(data)
-
+        # cv.resizeWindow('Video Capture', 1920, 1080)
+        # out.write(frame)
         cv.imshow('Video Capture', frame)
-        cv.imshow('Test', thresh)
+        cv.imshow('Test', edges)
 
         key = cv.waitKey(30)
         if key == ord('q') or key == 27:
@@ -221,4 +248,4 @@ if __name__ == '__main__':
     # Process(target=show_video(cap_video('./src/vid_6.mp4'))).start()
     # Process(target=get_csv()).start()
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(show_video(cap_video('./src/vid_11.mp4')))
+    loop.run_until_complete(show_video(cap_video('./src/vid_6.mp4')))

@@ -86,7 +86,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 # cap = cv.VideoCapture(args.camera)
-cap = cv.VideoCapture('./src/vid_16.mp4')
+cap = cv.VideoCapture('./src/vid_5.mp4')
 frame_count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
 print('Frame count:', frame_count)
 cv.namedWindow(window_capture_name)
@@ -113,8 +113,8 @@ fps = int(cap.get(cv.CAP_PROP_FPS))
 
 #  Codec for video
 fourcc = cv.VideoWriter_fourcc('m', 'p', '4', 'v')
-out = cv.VideoWriter('output.mp4', -1, fps,
-                     (frame_width, frame_height))
+# out = cv.VideoWriter('output.mp4', -1, fps,
+#                      (frame_width, frame_height))
 
 while True:
 
@@ -223,5 +223,5 @@ while True:
         break
 
 cap.release()
-out.release()
+# out.release()
 cv.destroyAllWindows()

@@ -1,10 +1,10 @@
 {
     "radiator_type": {
-        "type": "Тип 22х6220x860",
+        "type": "Тип 22х500x500",
         "sizes": {
-            "height": 622.0,
-            "lenght": 86.0,
-            "area": 53492
+            "height": 50,
+            "lenght": 50,
+            "area": 414440
         }
     }
 }
